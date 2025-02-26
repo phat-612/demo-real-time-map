@@ -49,7 +49,7 @@ function findRoute(start, end) {
         );
 
         // Fit bản đồ với tuyến đường
-        map.fitBounds(currentRoute.getBounds());
+        // map.fitBounds(currentRoute.getBounds());
       } else {
         alert("Không tìm thấy đường đi");
       }
