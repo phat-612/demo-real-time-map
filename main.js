@@ -1,6 +1,8 @@
 var map = L.map("map").setView([51.505, -0.09], 13);
 var marker = L.marker([10.7769, 106.7009]).addTo(map);
 var currentRoute;
+var previousLocation = null;
+var routeLatLngs = [];
 
 L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution:
@@ -9,7 +11,8 @@ L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
 
 function moveMarker(lat, lng) {
   marker.setLatLng([lat, lng]);
-  map.setView([lat, lng], map.getZoom()); // Optionally move the map view
+  // Optionally move the map view
+  // map.setView([lat, lng], map.getZoom());
 }
 
 function onLocationFound(e) {
@@ -36,7 +39,7 @@ function findRoute(start, end) {
         const path = data.paths[0].points;
 
         // Giải mã chuỗi polyline
-        const latlngs = polyline.decode(path);
+        routeLatLngs = polyline.decode(path);
 
         // Xóa tuyến đường hiện tại nếu có
         if (currentRoute) {
@@ -44,9 +47,10 @@ function findRoute(start, end) {
         }
 
         // Vẽ đường đi lên bản đồ
-        currentRoute = L.polyline(latlngs, { color: "blue", weight: 5 }).addTo(
-          map
-        );
+        currentRoute = L.polyline(routeLatLngs, {
+          color: "blue",
+          weight: 5,
+        }).addTo(map);
 
         // Fit bản đồ với tuyến đường
         // map.fitBounds(currentRoute.getBounds());
@@ -57,12 +61,28 @@ function findRoute(start, end) {
     .catch((error) => console.error("Error fetching route:", error));
 }
 
+function isOffRoute(currentLocation, routeLatLngs, threshold = 0.001) {
+  for (let i = 0; i < routeLatLngs.length; i++) {
+    const distance = Math.sqrt(
+      Math.pow(currentLocation[0] - routeLatLngs[i][0], 2) +
+        Math.pow(currentLocation[1] - routeLatLngs[i][1], 2)
+    );
+    if (distance < threshold) {
+      return false;
+    }
+  }
+  return true;
+}
+
 setInterval(() => {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition((position) => {
       var latlng = [position.coords.latitude, position.coords.longitude];
       moveMarker(latlng[0], latlng[1]);
-      findRoute(latlng, [10.046983, 105.767787]);
+      if (isOffRoute(latlng, routeLatLngs)) {
+        findRoute(latlng, [10.046983, 105.767787]);
+      }
+      previousLocation = latlng;
     });
   } else {
     alert("Trình duyệt không hỗ trợ Geolocation!");
