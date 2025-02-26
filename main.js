@@ -1,29 +1,30 @@
 var map = L.map("map").setView([51.505, -0.09], 13);
 var marker = L.marker([10.7769, 106.7009]).addTo(map);
+var currentRoute;
+
 L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution:
     '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
 }).addTo(map);
+
 function moveMarker(lat, lng) {
   marker.setLatLng([lat, lng]);
   map.setView([lat, lng], map.getZoom()); // Optionally move the map view
 }
+
 function onLocationFound(e) {
-  // var radius = e.accuracy / 2;
   moveMarker(e.latlng.lat, e.latlng.lng);
-  // L.marker(e.latlng)
-  //   .addTo(map)
-  //   .bindPopup("You are within " + radius + " meters from this point")
-  //   .openPopup();
-  // L.circle(e.latlng, radius).addTo(map);
 }
+
 function onLocationError(e) {
   alert(e.message);
 }
+
 map.on("locationfound", onLocationFound);
 map.on("locationerror", onLocationError);
+
 map.locate({ setView: true, maxZoom: 16 });
-// map.removeLayer(currentMarker);
+
 function findRoute(start, end) {
   fetch(
     `https://graphhopper.com/api/1/route?vehicle=car&locale=en&key=LijBPDQGfu7Iiq80w3HzwB4RUDJbMbhs6BU0dEnn&elevation=false&instructions=true&turn_costs=true&point=${start[0]}%2C${start[1]}&point=${end[0]}%2C${end[1]}`
@@ -37,17 +38,25 @@ function findRoute(start, end) {
         // Giải mã chuỗi polyline
         const latlngs = polyline.decode(path);
 
-        // Vẽ đường đi lên bản đồ
-        L.polyline(latlngs, { color: "blue", weight: 5 }).addTo(map);
+        // Xóa tuyến đường hiện tại nếu có
+        if (currentRoute) {
+          map.removeLayer(currentRoute);
+        }
 
-        // // Fit bản đồ với tuyến đường
-        // map.fitBounds(latlngs);
+        // Vẽ đường đi lên bản đồ
+        currentRoute = L.polyline(latlngs, { color: "blue", weight: 5 }).addTo(
+          map
+        );
+
+        // Fit bản đồ với tuyến đường
+        map.fitBounds(currentRoute.getBounds());
       } else {
         alert("Không tìm thấy đường đi");
       }
     })
     .catch((error) => console.error("Error fetching route:", error));
 }
+
 setInterval(() => {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition((position) => {
@@ -58,4 +67,4 @@ setInterval(() => {
   } else {
     alert("Trình duyệt không hỗ trợ Geolocation!");
   }
-}, 3000);
+}, 1000);
