@@ -61,13 +61,14 @@ function findRoute(start, end) {
     .catch((error) => console.error("Error fetching route:", error));
 }
 
-function isOffRoute(currentLocation, routeLatLngs, threshold = 0.001) {
+function isOffRoute(currentLocation, routeLatLngs, threshold = 5) {
   for (let i = 0; i < routeLatLngs.length; i++) {
     const distance = Math.sqrt(
       Math.pow(currentLocation[0] - routeLatLngs[i][0], 2) +
         Math.pow(currentLocation[1] - routeLatLngs[i][1], 2)
     );
     if (distance < threshold) {
+      console.log(distance, threshold);
       return false;
     }
   }
