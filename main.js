@@ -87,4 +87,4 @@ setInterval(() => {
   } else {
     alert("Trình duyệt không hỗ trợ Geolocation!");
   }
-}, 1000);
+}, 2000);
