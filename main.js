@@ -12,7 +12,7 @@ L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
 function moveMarker(lat, lng) {
   marker.setLatLng([lat, lng]);
   // Optionally move the map view
-  // map.setView([lat, lng], map.getZoom());
+  map.setView([lat, lng], map.getZoom());
 }
 
 function onLocationFound(e) {
