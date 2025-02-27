@@ -60,15 +60,28 @@ function findRoute(start, end) {
     })
     .catch((error) => console.error("Error fetching route:", error));
 }
+function haversineDistance(coord1, coord2) {
+  const R = 6371e3; // Bán kính Trái Đất tính bằng mét (6371 km)
+  const lat1 = (coord1[0] * Math.PI) / 180;
+  const lat2 = (coord2[0] * Math.PI) / 180;
+  const deltaLat = ((coord2[0] - coord1[0]) * Math.PI) / 180;
+  const deltaLon = ((coord2[1] - coord1[1]) * Math.PI) / 180;
 
-function isOffRoute(currentLocation, routeLatLngs, threshold = 5) {
+  const a =
+    Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+    Math.cos(lat1) *
+      Math.cos(lat2) *
+      Math.sin(deltaLon / 2) *
+      Math.sin(deltaLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c; // Khoảng cách tính bằng mét
+}
+
+function isOffRoute(currentLocation, routeLatLngs, threshold = 15) {
   for (let i = 0; i < routeLatLngs.length; i++) {
-    const distance = Math.sqrt(
-      Math.pow(currentLocation[0] - routeLatLngs[i][0], 2) +
-        Math.pow(currentLocation[1] - routeLatLngs[i][1], 2)
-    );
+    const distance = haversineDistance(currentLocation, routeLatLngs[i]);
     if (distance < threshold) {
-      console.log(distance, threshold);
       return false;
     }
   }
@@ -88,4 +101,4 @@ setInterval(() => {
   } else {
     alert("Trình duyệt không hỗ trợ Geolocation!");
   }
-}, 2000);
+}, 1000);
